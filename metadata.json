@@ -1,0 +1,5 @@
+{
+  "name": "Nebula Star Map - 星云",
+  "description": "A sophisticated star map generation and navigation tool based on the Nebula game rules. It features irregular dust clouds, celestial body classification, resource tracking, and interactive zoom/pan controls.",
+  "requestFramePermissions": []
+}
