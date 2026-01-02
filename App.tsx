@@ -5,6 +5,7 @@ import TechTree from './components/TechTree';
 import { Resources, MapConfig, StarSystem, Sector, PlayerID, BuildingType } from './types';
 import { INITIAL_RESOURCES, PLAYER_COLORS, BUILDING_STATS, MAX_RESOURCE_CAP } from './constants';
 import { generateSectors, generateStars } from './services/mapGenerator';
+import { techData } from './techTree';
 
 type GameState = 'setup' | 'playing' | 'techtree';
 
@@ -27,6 +28,18 @@ const App: React.FC = () => {
     'Player 4': { ...INITIAL_RESOURCES },
     'None': { ...INITIAL_RESOURCES, iron: 0, energy: 0, hydrogen: 0 }
   });
+
+  // Track owned technologies for each player
+  const [playerTechs, setPlayerTechs] = useState<Record<PlayerID, string[]>>(() => {
+    const initialTechIds = techData.technologies.filter(t => t.time === 'Initial').map(t => t.id);
+    return {
+      'Player 1': [...initialTechIds],
+      'Player 2': [...initialTechIds],
+      'Player 3': [...initialTechIds],
+      'Player 4': [...initialTechIds],
+      'None': []
+    };
+  });
   
   const [mapConfig, setMapConfig] = useState<MapConfig>({
     commonCount: 8, neutronCount: 2, blackHoleCount: 1,
@@ -38,8 +51,7 @@ const App: React.FC = () => {
   const [stars, setStars] = useState<StarSystem[]>([]);
   const sectors = useMemo(() => generateSectors(), []);
   const [selectedStarData, setSelectedStarData] = useState<{ starId: string; x: number; y: number } | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   const selectedStar = stars.find(s => s.id === selectedStarData?.starId);
   const currentRes = playerResources[currentPlayer];
 
@@ -159,7 +171,7 @@ const App: React.FC = () => {
     const slot: SaveSlot = {
       name: saveName || `Expedition_${Date.now()}`,
       date: new Date().toISOString(),
-      data: { stars, playerResources, mapConfig, day, currentPlayer }
+      data: { stars, playerResources, playerTechs, mapConfig, day, currentPlayer }
     };
     persist([slot, ...localSaves.filter(s => s.name !== slot.name)].slice(0, 10));
     alert("Archives Updated");
@@ -168,6 +180,7 @@ const App: React.FC = () => {
   const loadSlot = (slot: SaveSlot) => {
     setStars(slot.data.stars);
     setPlayerResources(slot.data.playerResources);
+    if (slot.data.playerTechs) setPlayerTechs(slot.data.playerTechs);
     setMapConfig(slot.data.mapConfig);
     setDay(slot.data.day);
     setCurrentPlayer(slot.data.currentPlayer);
@@ -250,7 +263,7 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-screen bg-slate-950 flex flex-col font-sans select-none overflow-hidden text-slate-200">
-      {gameState === 'techtree' && <TechTree onClose={() => setGameState('playing')} />}
+      {gameState === 'techtree' && <TechTree onClose={() => setGameState('playing')} currentPlayer={currentPlayer} onPlayerChange={setCurrentPlayer} playerTechs={playerTechs} />}
 
       {/* HUD Header */}
       <div className="z-20 h-24 bg-slate-900/90 backdrop-blur-2xl border-b border-slate-800 flex items-center justify-between px-10 shadow-2xl shrink-0">
