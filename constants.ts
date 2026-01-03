@@ -22,12 +22,13 @@ export const PLAYER_COLORS: Record<string, string> = {
 
 export const INITIAL_RESOURCES: Resources = {
   iron: 100,
-  nano: 10,
-  energy: 500,
-  hydrogen: 20,
+  nano: 0,
+  energy: 100,
+  hydrogen: 0,
   carbyne: 0,
   denseNeutron: 0,
-  strongInteraction: 0
+  strongInteraction: 0,
+  starGold: 0
 };
 
 export const EMPTY_RESOURCES: Resources = {
@@ -37,10 +38,11 @@ export const EMPTY_RESOURCES: Resources = {
   hydrogen: 0,
   carbyne: 0,
   denseNeutron: 0,
-  strongInteraction: 0
+  strongInteraction: 0,
+  starGold: 0
 };
 
-export const MAX_RESOURCE_CAP = 1000000000;
+export const MAX_RESOURCE_CAP = 1000000000000; // 10^12
 
 export const BUILDING_STATS: Record<BuildingType, any> = {
   Mine: { name: 'Basic Mine', cost: { iron: 1, energy: 1 }, production: { iron: 1 }, consumption: {}, reqEarth: 1 },

@@ -48,6 +48,31 @@ const generateLabel = (type: StarType, earth: number, gas: number): string => {
   return `${type}E${earth}J${gas}`;
 };
 
+const getReserves = (type: StarType, rng: () => number) => {
+  const multiplier = Math.floor(rng() * 9) + 1; // 1 to 9
+  let iron = 0, hydrogen = 0, starGold = 0;
+
+  switch (type) {
+    case StarType.COMMON:
+      iron = multiplier * 1e10;
+      hydrogen = 1e10;
+      starGold = multiplier * 1e8;
+      break;
+    case StarType.NEUTRON:
+    case StarType.BLACK_HOLE:
+      iron = multiplier * 1e8;
+      hydrogen = 0;
+      starGold = 0;
+      break;
+    case StarType.SUPERMASSIVE_BLACK_HOLE:
+      iron = multiplier * 1e9;
+      hydrogen = 10;
+      starGold = 10;
+      break;
+  }
+  return { iron, hydrogen, starGold };
+};
+
 export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[] => {
   const rng = createSeededRandom(config.seed || Math.random().toString());
   const stars: StarSystem[] = [];
@@ -61,7 +86,7 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
   };
 
   // 1. Central SMBH
-  // Fix: Replacing 'resources' with required 'ironReserve' and 'buildings' properties for StarSystem.
+  const smbhRes = getReserves(StarType.SUPERMASSIVE_BLACK_HOLE, rng);
   stars.push({
     id: 'center-smbh',
     type: StarType.SUPERMASSIVE_BLACK_HOLE,
@@ -72,7 +97,9 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
     label: 'str*',
     noiseSeed: rng(),
     owner: 'None',
-    ironReserve: 0,
+    ironReserve: smbhRes.iron,
+    hydrogenReserve: smbhRes.hydrogen,
+    starGoldReserve: smbhRes.starGold,
     buildings: { Mine: 0, NanoMine: 0, FusionReactor: 0, ZeroPointMine: 0 }
   });
 
@@ -91,7 +118,7 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
     const x = sector.bounds.x + sector.bounds.width / 2;
     const y = sector.bounds.y + sector.bounds.height / 2;
     
-    // Fix: Initializing ironReserve and empty buildings record instead of invalid 'resources' property.
+    const homeRes = getReserves(StarType.COMMON, rng);
     stars.push({
       id: `start-${slot.player}`,
       type: StarType.COMMON,
@@ -102,7 +129,9 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
       label: `HOME-${slot.player.slice(-1)}`,
       noiseSeed: rng(),
       owner: slot.player,
-      ironReserve: 1000000,
+      ironReserve: homeRes.iron,
+      hydrogenReserve: homeRes.hydrogen,
+      starGoldReserve: homeRes.starGold,
       buildings: { Mine: 0, NanoMine: 0, FusionReactor: 0, ZeroPointMine: 0 }
     });
   });
@@ -121,7 +150,7 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
         const earth = Math.floor(rng() * 5);
         const gas = (type === StarType.COMMON) ? Math.floor(rng() * 5) : 0;
         
-        // Fix: Properly initializing system properties to match the StarSystem interface.
+        const res = getReserves(type, rng);
         stars.push({
           id: `${sector.id}-${type}-${i}`,
           type,
@@ -132,7 +161,9 @@ export const generateStars = (config: MapConfig, sectors: Sector[]): StarSystem[
           label: generateLabel(type, earth, gas),
           noiseSeed: rng(),
           owner: 'None',
-          ironReserve: Math.floor(rng() * 2000000) + 50000,
+          ironReserve: res.iron,
+          hydrogenReserve: res.hydrogen,
+          starGoldReserve: res.starGold,
           buildings: { Mine: 0, NanoMine: 0, FusionReactor: 0, ZeroPointMine: 0 }
         });
       }

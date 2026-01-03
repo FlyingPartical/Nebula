@@ -16,6 +16,7 @@ export interface Resources {
   carbyne: number;
   denseNeutron: number;
   strongInteraction: number;
+  starGold: number;
 }
 
 export type BuildingType = 'Mine' | 'NanoMine' | 'FusionReactor' | 'ZeroPointMine';
@@ -41,6 +42,8 @@ export interface StarSystem {
   noiseSeed: number;
   owner: PlayerID;
   ironReserve: number;
+  hydrogenReserve: number;
+  starGoldReserve: number;
   buildings: Record<BuildingType, number>;
 }
 

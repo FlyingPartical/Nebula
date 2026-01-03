@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useMemo, useLayoutEffect, useCallback } from 'react';
 import { Technology, PlayerID } from '../types';
 import { PLAYER_COLORS } from '../constants';
@@ -26,15 +25,16 @@ const TechTree: React.FC<TechTreeProps> = ({ onClose, currentPlayer, onPlayerCha
 
   // Branch grouping logic for root to branch lines
   const mainBranches = useMemo(() => {
+    // These keys must match the "branch" strings in techTree.ts
     const categories: Record<string, string[]> = {
       "Theory": ["Theory"],
       "Energy": ["Energy"],
       "Materials": ["Materials"],
-      "Communication": ["Communication"],
+      "Comms": ["Comms"],
       "Sensing": ["Sensing"],
       "Engines": ["Engines"],
       "Protection": ["Protection"],
-      "Weapons": ["Kinetic Weapons", "Energy Weapons"],
+      "Weapons": ["Kinetic", "Energy Weapons"],
       "Mining": ["Mining"]
     };
 
@@ -49,10 +49,11 @@ const TechTree: React.FC<TechTreeProps> = ({ onClose, currentPlayer, onPlayerCha
   }, [techList]);
 
   // Recalculate positions after render to ensure SVG lines are correct
-  // Fixed: Added useCallback to the import from 'react'
+  // Fixed error by properly casting NodeList elements to HTMLElement
   const updatePositions = useCallback(() => {
     const positions: Record<string, { x: number; y: number; w: number; h: number }> = {};
-    Object.entries(nodesRef.current).forEach(([id, el]) => {
+    // Fix: Explicitly cast Object.entries to [string, HTMLDivElement | null][] to avoid 'unknown' type errors on 'el'
+    (Object.entries(nodesRef.current) as [string, HTMLDivElement | null][]).forEach(([id, el]) => {
       if (el) {
         positions[id] = { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
       }
@@ -67,7 +68,8 @@ const TechTree: React.FC<TechTreeProps> = ({ onClose, currentPlayer, onPlayerCha
         };
     }
     
-    document.querySelectorAll('.branch-header').forEach((el: any) => {
+    document.querySelectorAll('.branch-header').forEach((node) => {
+        const el = node as HTMLElement;
         const branchName = el.dataset.branch;
         if (branchName) {
             positions[branchName] = { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
@@ -206,10 +208,10 @@ const TechTree: React.FC<TechTreeProps> = ({ onClose, currentPlayer, onPlayerCha
                 <div className="flex space-x-12">
                    {Object.entries(subGroups).map(([subName, techs]) => (
                      <div key={subName} className="flex flex-col items-center">
-                        {mainName === "Weapons" && (
+                        {(mainName === "Weapons") && (
                              <div className="w-full h-8 flex items-center justify-center mb-4 relative">
                                 <div className="absolute bottom-0 w-full border-t border-blue-900/50"></div>
-                                <span className="bg-black px-4 text-[10px] font-black text-blue-700 uppercase tracking-[0.3em] z-10">{subName.replace(' Weapons', '')}</span>
+                                <span className="bg-black px-4 text-[10px] font-black text-blue-700 uppercase tracking-[0.3em] z-10">{subName.toUpperCase()}</span>
                              </div>
                         )}
                         <div className="space-y-12">
